@@ -1,0 +1,15 @@
+# Archivos basura
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info
+
+*.log
+*.tmp
+
+# Carpetas recursivas
+Resultados/
+shap_outputs/
+__pycache__/
