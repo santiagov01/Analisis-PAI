@@ -9,7 +9,7 @@ from xgboost import XGBClassifier
 
 class CFG:
     colab = False  # Cambiar a True si se usa Colab
-    Root = R'D:\Estudio\OneDrive - Universidad de Antioquia\Estudio\PAI\Codigo' if not colab else '/content/drive/MyDrive/PAI'
+    Root = '/home/student/PAI/Analisis-PAI' if not colab else '/content/drive/MyDrive/PAI'
     path_df_imputed = f'{Root}/BaseDatos/df_imputed_with_original.csv'
     path_df_imputed_corrected = f'{Root}/BaseDatos/df_imputed_corrected.csv'
     elements_list = ["Nitrogen", "Phosphorus", "Potassium"]

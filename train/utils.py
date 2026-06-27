@@ -1554,7 +1554,7 @@ def train_test_model_pca(df_imputed, n_clases, model_name, model_config, element
         'f1_train': f1_train,
         'f1_train_macro': f1_train_macro,
         'f1_test': f1_test,
-        'f1_test_macro': f1_test_macro,
+        'f1_macro_test': f1_test_macro,
         'best_params': grid.best_params_,
         'class_distribution': class_dist,
         'classification_report': class_report_dict,

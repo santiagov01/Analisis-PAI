@@ -11,7 +11,7 @@ class CFG:
     colab = False  # Cambiar a True si se usa Colab
     Root = R'D:\Estudio\OneDrive - Universidad de Antioquia\Estudio\PAI\Codigo' if not colab else '/content/drive/MyDrive/PAI'
     path_df_imputed = f'{Root}/BaseDatos/df_imputed_with_original.csv'
-    path_df_imputed_corrected = f'{Root}/BaseDatos/df_imputed_corrected.csv'
+    path_df_imputed_corrected = f'{Root}/BaseDatos/df_imputed_corrected_V2.csv'
     elements_list = ["Nitrogen", "Phosphorus", "Potassium"]
     productivity_vars = ["Plant_Height (cm)", "Number of Flowers", 'Number of Harvested Fruits', 
                          'Weight of Harvested Fruits (Kg)','Fruit Height (mm)', 'Fruit Diameter (mm)']

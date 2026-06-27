@@ -1,0 +1,15 @@
+weight_3_Nitrogen_RF,weight_3_Nitrogen_SVM,weight_3_Nitrogen_KNN,weight_3_Nitrogen_MLP,weight_3_Nitrogen_XGB
+Chlorophyll (SPAD),Sap Conductivity (mS/cm),Sap Conductivity (mS/cm),Sap Conductivity (mS/cm),Sap Na (ppm)
+Sap Conductivity (mS/cm),Sap Na (ppm),Sap Na (ppm),Sap Na (ppm),Soil NO3 Horiba (ppm)
+Soil NO3 Horiba (ppm),Chlorophyll (SPAD),Chlorophyll (SPAD),Soil NO3 Horiba (ppm),Sap Conductivity (mS/cm)
+Sap Na (ppm),Soil Ca Horiba (ppm),Soil pH Horiba,Soil Ca Horiba (ppm),Chlorophyll (SPAD)
+Sap Ca (ppm),Sap Ca (ppm),Soil Ca Horiba (ppm),7in1_S_Temperature(C),Sap K (ppm)
+Sap K (ppm),Soil NO3 Horiba (ppm),Sap Ca (ppm),Chlorophyll (SPAD),Sap Ca (ppm)
+Sap NO3 (ppm),Air_sensor_Temperature(C),Sap K (ppm),Sap Ca (ppm),Soil K Horiba (ppm)
+Soil K Horiba (ppm),Sap K (ppm),Sap NO3 (ppm),Sap NO3 (ppm),Sap NO3 (ppm)
+Air_sensor_Temperature(C),7in1_S_Temperature(C),Air_sensor_Humidity(%RH),Sap K (ppm),Air_sensor_Temperature(C)
+7in1_Ph(pH),Air_sensor_Humidity(%RH),Air_sensor_Temperature(C),Sap pH,Soil Ca Horiba (ppm)
+Soil Na Horiba (ppm),Sap NO3 (ppm),7in1_S_Temperature(C),Pynamometer_Radiation(W/m2),Soil pH Horiba
+Soil Ca Horiba (ppm),Soil pH Horiba,7in1_Moisture(%RH),Air_sensor_Temperature(C),7in1_Ph(pH)
+7in1_S_Temperature(C),7in1_Moisture(%RH),Pynamometer_Radiation(W/m2),7in1_Ph(pH),7in1_Conductivity(mS/cm)
+Sap pH,Sap pH,Sap pH,Air_sensor_Humidity(%RH),Soil Conductivity Horiba (mS/cm)

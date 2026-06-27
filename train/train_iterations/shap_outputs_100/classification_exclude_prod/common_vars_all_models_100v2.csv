@@ -1,0 +1,8 @@
+weight_3_Nitrogen,weight_3_Phosphorus,weight_3_Potassium
+Sap Na (ppm),Sap NO3 (ppm),Sap Conductivity (mS/cm)
+Sap Ca (ppm),Soil Ca Horiba (ppm),Sap K (ppm)
+Sap Conductivity (mS/cm),Sap Ca (ppm),Sap Ca (ppm)
+Chlorophyll (SPAD),Sap Na (ppm),Soil pH Horiba
+Sap NO3 (ppm),Soil pH Horiba,Sap Na (ppm)
+Sap K (ppm),Chlorophyll (SPAD),Chlorophyll (SPAD)
+7in1_S_Temperature(C),,Sap NO3 (ppm)

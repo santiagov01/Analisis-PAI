@@ -1,0 +1,11 @@
+RF,SVM,KNN,MLP,XGB
+Sap NO3 (ppm),Sap NO3 (ppm),Sap Ca (ppm),Sap Ca (ppm),Sap NO3 (ppm)
+Sap Na (ppm),Sap Ca (ppm),Sap NO3 (ppm),Sap NO3 (ppm),Soil Ca Horiba (ppm)
+Soil K Horiba (ppm),Soil Ca Horiba (ppm),Chlorophyll (SPAD),Soil Ca Horiba (ppm),Sap Ca (ppm)
+Soil Ca Horiba (ppm),Sap Na (ppm),Soil pH Horiba,Sap Na (ppm),Sap Na (ppm)
+Soil pH Horiba,7in1_S_Temperature(C),Sap Na (ppm),Chlorophyll (SPAD),Soil K Horiba (ppm)
+Sap Ca (ppm),Chlorophyll (SPAD),Sap Conductivity (mS/cm),7in1_S_Temperature(C),Soil NO3 Horiba (ppm)
+Soil Conductivity Horiba (mS/cm),Soil pH Horiba,Sap K (ppm),Soil pH Horiba,Soil Na Horiba (ppm)
+,Sap Conductivity (mS/cm),Soil Ca Horiba (ppm),Sap Conductivity (mS/cm),Soil Conductivity Horiba (mS/cm)
+,7in1_Moisture(%RH),Sap pH,Air_sensor_Temperature(C),
+,,,Sap pH,

@@ -136,7 +136,7 @@ if CFG.individual_train:
 ======== 2. ENTRENAMIENTO DE NPK - NESTED ===============
 '''
 
-'''
+
 # ============ Configure Paths =======================
 
 CFG.class_path = f'{CFG.Root}/Resultados/classification_exclude_prod_nested/'
@@ -250,5 +250,3 @@ if CFG.individual_train:
 if CFG.individual_train:
     dir_path_permutation = f'{CFG.class_path}permutation_importance/'
     permutation_importance_NPK(all_results, df_imputed, dir_path_permutation, CFG.class_path, CFG=CFG)
-
-'''

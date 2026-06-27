@@ -8,8 +8,9 @@
 
 *.log
 *.tmp
+*.pdf
 
 # Carpetas recursivas
-Resultados/
+Resultados*/
 shap_outputs/
 __pycache__/
