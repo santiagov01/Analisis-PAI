@@ -4,17 +4,24 @@ Machine learning pipeline for classifying optimal NPK fertilizer levels in tomat
 
 ## Project Overview
 
-This project develops classification models to predict optimal nitrogen (N), phosphorus (P), and potassium (K) fertilizer levels based on soil properties, plant health indicators, and environmental conditions.
+This project develops classification models to predict optimal nitrogen (N), phosphorus (P), and potassium (K) fertilizer levels based on soil properties, plant health indicators, and environmental conditions. A second model to extract classify the treatments belonging to high and low productivity according to the total weight of harvested fruits. And finally the analysis of the most important variables for these models and that might create an warning according to a significant difference between the treatments in high and low productivity.
 
 **Key Objectives:**
 - Classify fertilizer requirements into deficiency/adequate/excess categories
-- Identify most important variables influencing nutrient uptake
+- Classify the treatments belongint to high and low productivity
+- Identify most important variables for these models
 - Analyze productivity relationships with fertilizer treatments
 - Provide interpretable recommendations using SHAP analysis
+- Identify warnings alerts finding the week at there's a significant difference between treatments in Q1 and Q4 productivity
 
-## Dataset
+![alt text](images/pipeline.png)
 
-**Sources:** Fixed stations (CropX, Fijo), mobile sensors (Movil), manual measurements (Manual), and farm management records (Manejo)
+## Dataset (`BaseDatos/`)
+
+**Sources:** 
+
+- Fixed stations (CropX, Fijo), mobile sensors (Movil), manual measurements (Manual), and farm management records (Manejo)
+- Finally only it's used **Manual measurements and Mobile station measurement.**
 
 **Variables:**
 - Soil: VWC, temperature, EC, pH, nutrients (N, P, K, Ca, Na)
@@ -23,7 +30,7 @@ This project develops classification models to predict optimal nitrogen (N), pho
 - Productivity: harvested fruits, weight, fruit dimensions
 
 **Preprocessing:**
-- Unified data from 5 sources
+- Unified data from 2 sources
 - Iterative imputation for missing values
 - Removed rows with >24 missing values
 - Zero-corrected productivity variables before harvest start date
@@ -50,7 +57,9 @@ This project develops classification models to predict optimal nitrogen (N), pho
 - **5-Results-SHAP_Analysis_Ranking.ipynb**: Comprehensive SHAP analysis and variable ranking
 - **6-Results-Productivity-Analysis.ipynb**: Correlation analysis between important variables and productivity
 
-## Training Scripts (`train/`)
+## Training Scripts (`train/` and `train_iterations/`)
+
+Final version use scripts in `train_iteraions/`
 
 **Configuration:**
 - `config.py`: Model hyperparameters, paths, global settings
@@ -67,7 +76,7 @@ This project develops classification models to predict optimal nitrogen (N), pho
 **Key Features:**
 - Nested cross-validation for robust evaluation
 - GridSearchCV for hyperparameter tuning
-- SMOTE support for class imbalance
+- Due dataset distribution, it's not necessary a technique for balance
 - SHAP analysis for interpretability
 - Parallel processing with joblib
 
@@ -81,35 +90,32 @@ This project develops classification models to predict optimal nitrogen (N), pho
 - XGBoost (XGB)
 
 **Evaluation Metrics:**
-- Accuracy, F1-score (weighted)
+- Accuracy, F1-score (macro)
 - Precision, recall per class
 - Confusion matrices
 - Cross-validation scores
 
-## Results Structure
+## Results Structure (`Resultados/` and `train/train_iterations/`)
 
-```
-Resultados/
-├── classification_exclude_prod/              # NPK models without productivity vars
-│   ├── most_frequent_variables_70.json       # Top 70% important features
-│   ├── most_frequent_variables_80.json       # Top 80% important features
-│   ├── resultados_modelos_completos.csv      # Complete model metrics
-│   └── RF/SVM/KNN/MLP/XGB/                   # Per-model results
-├── classification_cuartiles_exclude_prod/    # Quartile classification
-├── classification_cuartiles_less_vars/       # Reduced features
-├── classification_cuartiles_pca/             # PCA-transformed
-├── permutation_importance/                   # Permutation importance results
-└── treatments_quantile_unified.json          # Treatment quantile definitions
-```
+It contaions results from all classification models, all iterations and all algorithms
+1. Results from iterations: e.g. `Resultados/classification_exclude_prod/iter_*/`
+
+2. Results for interpretability are found in `train/train_iterations/Permutation_Importance100` and `train/train_iterations/shap_outputs_100/`
+
+3. Results of statistical analysis are found in `statistical_analysis/`
+
 
 ## Key Findings
 
 **Most Important Variables:**
 Consistent across models (SHAP + permutation importance):
-- Soil nutrients: K_suelo_Horiba, Ca_suelo_Horiba, NO3_suelo_Horiba
-- Sap nutrients: K_savia, Ca_savia, Conductividad_savia
-- Plant health: Clorofila (SPAD)
-- Soil properties: VWC (water content), EC, pH
+
+![alt text](images/image2.png)
+
+Example of comparision from the treatments in high vs low productivity for Sap Na along the time. Week 8 before the harvest onset was the date when it showed a significant difference. 
+
+
+![alt text](images/image.png)
 
 **Model Performance:**
 - XGBoost and Random Forest: Best overall performance
@@ -120,11 +126,14 @@ Consistent across models (SHAP + permutation importance):
 
 1. **Data Integration**: Run notebooks 2-preprocess and 3-Preprocess
 2. **Generate Imputed Data**: Complete 3-Preprocess notebook to create `df_imputed_corrected.csv`
-3. **Train Models**: Execute train scripts (NPK or quartiles)
-4. **Feature Selection**: Extract top variables from results
-5. **Retrain**: Use reduced variable set for optimized models
-6. **Interpret**: Analyze SHAP values and permutation importance
-7. **Validate**: Review productivity correlations
+3. **Train Models**: Execute train scripts (NPK or quartiles) with iterations
+4. **Find Best Model**: Execute notebook to analyze metrics results and find the iteration it showed the best performance. 
+5. **Feature Selection**: Execute `extract_XAI_best_iter.py` to execute the features importance techniques. It needs the best trained model found previous step
+6. **Retrain**: Use reduced variable set for optimized models
+7. **Interpret**: Analyze SHAP values and permutation importance
+8. **Validate**: Review productivity correlations
+9. **Warning alert**: Execute the statistical Analysis scripts to find the week that showed a significant difference and might create an warning alert for the most important variables from previous steps
+
 
 ## Requirements
 
@@ -137,14 +146,36 @@ matplotlib, seaborn, plotly
 
 ## Usage
 
-```bash
-# Train individual NPK models
-python train/train_NPK.py
+1. Create the virtual environment:
+   ```bash
+   python3 -m venv venv-pai
+   ```
 
-# Train quartile classification
-python train/train_cuartiles.py
+2. Activate the virtual environment:
+   ```bash
+   source venv-pai/bin/activate
+   ```
 
-# Train with reduced variables
-python train/train_cuartiles_less_vars.py
-```
+3. Install the project requirements:
+   ```bash
+   pip install -r reqs.txt
+   ```
+
+4. Run the training scripts:
+   ```bash
+   # Train individual NPK models
+   python train/train_NPK.py
+
+   # Train quartile classification
+   python train/train_cuartiles.py
+
+   # Train with reduced variables
+   python train/train_cuartiles_less_vars.py
+   ```
+
+Use `tmux` to create a session and remote execution.
+
+## Acknowledgment
+
+This work was supported by the General System of Royalties (SGR) through the Science, Technology and Innovation Fund (FCTeI) under the project “Development of an Intelligent and Energy-Autonomous Agriculture Platform for Continuous Monitoring of Relevant Variables Aimed at Improving Productivity and Mitigating Environmental Impact in Antioquia and Quindío Horticultural Crops”, executed by the University of Antioquia.
 
