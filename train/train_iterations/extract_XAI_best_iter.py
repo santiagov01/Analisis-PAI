@@ -30,11 +30,11 @@ def build_model_path(best_iter, model_type):
     seed = best_iter + 41
     if model_type == "cuartiles":
         return (
-            f"{CFG.Root}/Resultados/classification_cuartiles_exclude_prod/"
+            f"{CFG.Root}/Resultados/outliers_experiment_Quartiles/outlier_30/classification_cuartiles_exclude_prod/"
             f"iter_{best_iter_str}_seed_{seed}/class_models_cuartiles_all_models.pkl"
         )
     return (
-        f"{CFG.Root}/Resultados/classification_exclude_prod/"
+        f"{CFG.Root}/Resultados/outliers_experiment_NPK/outlier_20/classification_exclude_prod"
         f"iter_{best_iter_str}_seed_{seed}/class_results_individual_elements.pkl"
     )
 

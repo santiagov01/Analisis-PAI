@@ -12,7 +12,7 @@ df_imputed.columns = clean_feature_names(df_imputed.columns)
 
 N_ITERATIONS = 20
 BASE_SEED = 42
-N_THREADS = 3
+N_THREADS = 2
 
 # % de outliers a evaluar (0 = baseline, sin modificar). Ajusta a gusto.
 OUTLIER_PERCENTAGES = [0.1, 0.2, 0.3]
@@ -79,7 +79,7 @@ def train_test_model_outliers(df_imputed, n_clases, model_name, model_config, el
                               dir_path= "../",
                               best_variables = None, train_pca = False, n_components = None,
                               CFG=None,
-                              seed=None):
+                              seed=None, outlier=0.0):
     """Función principal para entrenar y evaluar un modelo.
     Utiliza Crossvalidación en GridSearch.
 
@@ -141,7 +141,7 @@ def train_test_model_outliers(df_imputed, n_clases, model_name, model_config, el
     f1_train = np.mean(nested_score['train_f1_micro'])
     f1_train_macro = np.mean(nested_score['train_f1_macro'])
     # ================ TEST =====================
-    X_test, _ = agregar_outliers(X_test, porcentaje=0.2, n_std=N_STD_OUTLIERS, random_state=seed)
+    X_test, _ = agregar_outliers(X_test, porcentaje=outlier, n_std=N_STD_OUTLIERS, random_state=seed)
 
     y_test_pred = grid.predict(X_test)
 
@@ -255,7 +255,7 @@ def get_models_config_for_seed(seed):
     return models_config_seed
 
 
-def entrenar_modelo_cuartiles(model_name, model_config, df_imputed, class_path, seed):
+def entrenar_modelo_cuartiles(model_name, model_config, df_imputed, class_path, seed, outlier=0.0):
     """Entrena un modelo para clasificacion por cuartiles."""
     # joblib workers can start with config defaults; enforce cuartiles mode here.
     CFG.individual_train = False
@@ -276,12 +276,14 @@ def entrenar_modelo_cuartiles(model_name, model_config, df_imputed, class_path, 
         calcular_shap=False,
         dir_path=dir_path,
         CFG=CFG,
-        seed=seed
+        seed=seed,
+        outlier=outlier
     )
     return (model_name, resultado)
 
 
-def run_non_nested_iteration(df_imputed, models_config, class_path, seed):
+
+def run_non_nested_iteration(df_imputed, models_config, class_path, seed, outlier=0.0):
     CFG.class_path = class_path
     os.makedirs(CFG.class_path, exist_ok=True)
     CFG.individual_train = False
@@ -295,7 +297,8 @@ def run_non_nested_iteration(df_imputed, models_config, class_path, seed):
             model_config=model_config,
             df_imputed=df_imputed,
             class_path= class_path,
-            seed=seed
+            seed=seed,
+            outlier=outlier
         )
         for model_name, model_config in models_config.items()
     )
@@ -328,7 +331,7 @@ def run_iteration_outlier(iteration_idx, seed, outlier):
         f"{outlier_dir}classification_cuartiles_exclude_prod/"
         f"iter_{iteration_idx:02d}_seed_{seed}/"
     )
-    run_non_nested_iteration(df_imputed, models_config_seed, class_path_non_nested, seed)
+    run_non_nested_iteration(df_imputed, models_config_seed, class_path_non_nested, seed, outlier=outlier)
 
 def _get_column_name(df, options):
     for col in options:
