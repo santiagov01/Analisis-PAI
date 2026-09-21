@@ -78,7 +78,8 @@ def train_test_model_outliers(df_imputed, n_clases, model_name, model_config, el
                               dir_path= "../",
                               best_variables = None, train_pca = False, n_components = None,
                               CFG=None,
-                              seed=None):
+                              seed=None,
+                              outlier=None):
     """Función principal para entrenar y evaluar un modelo.
     Utiliza Crossvalidación en GridSearch.
 
@@ -96,6 +97,9 @@ def train_test_model_outliers(df_imputed, n_clases, model_name, model_config, el
                         en formato binario .pkl
         train_pca (bool): Opción para entrenar con variables reduciar por PCA
         n_components(int): Number of components when applying PCA.
+        CFG: Configuración global del experimento.
+        seed (int): Semilla para reproducibilidad.
+        outlier (float): Porcentaje de outliers a agregar en el conjunto de prueba.
     Returns:
         dict: Resultados del entrenamiento y evaluación del modelo.
     """
@@ -140,7 +144,7 @@ def train_test_model_outliers(df_imputed, n_clases, model_name, model_config, el
     f1_train = np.mean(nested_score['train_f1_micro'])
     f1_train_macro = np.mean(nested_score['train_f1_macro'])
     # ================ TEST =====================
-    X_test, _ = agregar_outliers(X_test, porcentaje=0.2, n_std=N_STD_OUTLIERS, random_state=seed)
+    X_test, _ = agregar_outliers(X_test, porcentaje=outlier, n_std=N_STD_OUTLIERS, random_state=seed)
 
     y_test_pred = grid.predict(X_test)
 
@@ -254,7 +258,7 @@ def get_models_config_for_seed(seed):
     return models_config_seed
 
 
-def entrenar_modelo_por_elemento(model_name, model_config, df_imputed, element, class_path, seed):
+def entrenar_modelo_por_elemento(model_name, model_config, df_imputed, element, class_path, seed, outlier):
     """Entrena un modelo para un elemento específico."""
     # joblib workers can start with config defaults; enforce individual mode here.
     CFG.individual_train = True
@@ -276,12 +280,13 @@ def entrenar_modelo_por_elemento(model_name, model_config, df_imputed, element, 
         calcular_shap=False,
         dir_path=dir_path,
         CFG=CFG,
-        seed=seed
+        seed=seed,
+        outlier=outlier
     )
     return (model_name, element, resultado)
  
  
-def run_non_nested_iteration(df_imputed, models_config, class_path, seed):
+def run_non_nested_iteration(df_imputed, models_config, class_path, seed, outlier):
     CFG.class_path = class_path
     os.makedirs(CFG.class_path, exist_ok=True)
     CFG.path_pkl_results_classification = f"{CFG.class_path}class_results_individual_elements.pkl"
@@ -296,7 +301,8 @@ def run_non_nested_iteration(df_imputed, models_config, class_path, seed):
             df_imputed=df_imputed,
             element=element,
             class_path=class_path,
-            seed=seed
+            seed=seed,
+            outlier=outlier
         )
         for model_name, model_config in models_config.items()
         for element in CFG.elements_list
@@ -329,7 +335,8 @@ def run_iteration_outlier(iteration_idx, seed, outlier):
         f"{outlier_dir}classification_exclude_prod/"
         f"iter_{iteration_idx:02d}_seed_{seed}/"
     )
-    run_non_nested_iteration(df_imputed, models_config_seed, class_path_non_nested, seed)
+    run_non_nested_iteration(df_imputed, models_config_seed, class_path_non_nested, seed,
+                            outlier)
 
 # funciones para guardar metricas de iteraciones y obtener el mejor modelo por elemento
 def _get_column_name(df, options):
@@ -431,11 +438,3 @@ for outlier_percentage in OUTLIER_PERCENTAGES:
         iter_summary_dir=iter_summary_dir
     )
 
-# Generar resumen de iteraciones para nested y non-nested
-
-# build_nested_iterations_summary(
-#     base_path=f"{CFG.Root}/Resultados/classification_exclude_prod/",
-#     n_iterations=N_ITERATIONS,
-#     base_seed=BASE_SEED,
-#     output_name="resumen_metricas_non_nested_iteraciones.csv"
-# )
