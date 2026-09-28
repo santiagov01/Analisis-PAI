@@ -11,22 +11,32 @@ from new_utils import impute_data, extract_frequent_values_from_csv
 from xai_utils import compute_shap_importance
 from cuartiles_utils import (
     train_test_cuartiles, 
-    run_permutation_cuartiles
+    run_permutation_cuartiles,
+    read_best_variables
 )
 
-# 0. CONFIGURACIÓN Y LOGGER
+# ============== Definir rutas y parámetros =====================
 N_ITERATIONS = 20
 BASE_SEED = 42
 SHAP_ITERATIONS = 10
 TARGET_METRIC = 'f1_test_macro'
 
-output_dir = os.path.join(CFG.Root, "Resultados", "pipeline_cuartiles")
+output_dir = os.path.join(CFG.Root, "Resultados", "pipeline_cuartiles_less_vars")
 xai_dir = os.path.join(output_dir, "xai_outputs")
 os.makedirs(xai_dir, exist_ok=True)
 
 checkpoint_file = os.path.join(output_dir, "checkpoint_cuartiles.json")
 progress_file = os.path.join(output_dir, "historico_progress.pkl")
 
+# ============== READ BEST VARS ===============================
+json_best_variables = os.path.join(CFG.Root, "Resultados",
+                                   "pipeline_imputation_NPK",
+                                   "xai_outputs",
+                                   "final_robust_features.json")
+
+list_best_vars = read_best_variables(json_best_variables)
+#=============================================================
+# Revisar si hay un checkpoint previo para continuar desde allí
 if os.path.exists(checkpoint_file):
     with open(checkpoint_file, 'r', encoding='utf-8') as file:
         checkpoint = json.load(file)
@@ -35,6 +45,7 @@ else:
 
 completed_iterations = set(checkpoint.get('completadas', []))
 
+# Cargar el historial de progreso
 if os.path.exists(progress_file):
     with open(progress_file, 'rb') as file:
         historico = pickle.load(file)
@@ -43,11 +54,11 @@ else:
 
 logger = setup_logger("Cuartiles_Pipeline", log_file=os.path.join(output_dir, "pipeline.log"))
 
-# 1. CARGA DE DATOS
+# ======== Carga de datos ======================================
 logger.info(f"Cargando dataset desde: {CFG.data_path_clean}")
 data_clean = pd.read_csv(CFG.data_path_clean)
 
-# 2. BUCLE DE 20 ITERACIONES (SPLIT, IMPUTACIÓN, ENTRENAMIENTO)
+# ============== BUCLE DE 20 ITERACIONES (SPLIT, IMPUTACIÓN, ENTRENAMIENTO) ========================
 logger.info(f"Iniciando {N_ITERATIONS} iteraciones de entrenamiento por cuartiles...")
 
 for idx in range(N_ITERATIONS):
@@ -60,12 +71,12 @@ for idx in range(N_ITERATIONS):
 
     logger.info(f"Iteración {idx + 1}/{N_ITERATIONS} (Semilla: {seed})")
     
-    # Split 70/30 estratificado por tratamiento
+    # ======== Split 70/30 estratificado por tratamiento =======================
     data_clean['Etiqueta_NPK'] = data_clean['Tratamiento'].str.extract(r'(N\dP\dK\d)')
     train_data, test_data = train_test_split(
         data_clean, test_size=0.3, random_state=seed, stratify=data_clean['Etiqueta_NPK']
     )
-    
+    # ======== Imputación de datos ==========================================
     train_imp, test_imp = impute_data(train_data, test_data, seed=seed)
     historico[idx] = {}
     
@@ -73,6 +84,15 @@ for idx in range(N_ITERATIONS):
     train_imp = train_imp.drop(columns=CFG.productivity_vars, errors='ignore')
     test_imp = test_imp.drop(columns=CFG.productivity_vars, errors='ignore')
 
+    columns_to_drop = []
+    # Solo entrenar con best vars
+    if list_best_vars != None:
+        for var_name in train_imp.columns:
+            if var_name not in list_best_vars:
+                columns_to_drop.append(var_name)
+    train_imp = train_imp.drop(columns=columns_to_drop, errors='ignore')
+    test_imp = test_imp.drop(columns=columns_to_drop, errors='ignore')
+    # ======== Entrenamiento del modelo ======================================
     logger.info(f"Datos imputados para iteración {idx + 1}: Train shape {train_imp.shape}, Test shape {test_imp.shape}")
     logger.info(f"Variables de entrenamiento: {train_imp.columns.tolist()}")
     for model_name, model_cfg in MODELS_CONFIG.items():
@@ -89,6 +109,7 @@ for idx in range(N_ITERATIONS):
         )
         historico[idx][model_name] = res
 
+    # ============= Guardar progreso y checkpoint =========================
     completed_iterations.add(iteration_key)
     with open(progress_file, 'wb') as file:
         pickle.dump(historico, file)
@@ -96,7 +117,7 @@ for idx in range(N_ITERATIONS):
         json.dump({'completadas': sorted(completed_iterations)}, file, indent=4)
     logger.info(f"Checkpoint guardado: {iteration_key}")
 
-# 3. SELECCIÓN DE LA MEJOR ITERACIÓN
+# ============== SELECCIÓN DE LA MEJOR ITERACIÓN ========================
 logger.info("Evaluando la iteración con mejor rendimiento promedio...")
 mejor_iter = -1
 mejor_score = -1.0
@@ -116,7 +137,7 @@ best_results_path = os.path.join(output_dir, "best_results.pkl")
 with open(best_results_path, 'wb') as file:
     pickle.dump(best_results, file)
 
-# 4. INTERPRETABILIDAD SHAP BINARIA (10 ITERACIONES)
+# ============== INTERPRETABILIDAD SHAP BINARIA (10 ITERACIONES) ========================
 logger.info("Calculando SHAP para 2 clases (10 iteraciones)...")
 shap_dir = os.path.join(xai_dir, "shap")
 os.makedirs(shap_dir, exist_ok=True)
@@ -183,3 +204,6 @@ pd.DataFrame({'Cuartiles_Best_Vars': cuartiles_best_vars_100}).to_csv(
     os.path.join(xai_dir, "cuartiles_best_vars_100.csv"), index=False
 )
 logger.info("Pipeline de cuartiles finalizado con éxito.")
+
+
+

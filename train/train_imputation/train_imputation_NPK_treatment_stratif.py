@@ -26,7 +26,7 @@ from config import CFG, MODELS_CONFIG, setup_logger
 from new_utils import (
     impute_data,
     train_test_NPK,
-    split_data_NPK,
+    treatment_grouped_split,
     save_results_iterations
 )
 from xai_utils import (
@@ -34,83 +34,8 @@ from xai_utils import (
     run_permutation_pipeline,
     extract_and_save_robust_features
 )
-
-'''
-data_clean = pd.read_csv(CFG.data_path_clean)
-historico_resultados = {elem: {} for elem in CFG.elements}
-
-for idx in range(N_ITERATIONS + 1):
-
-    # 2. dividir en train y test
-    train_data, test_data = split_data_NPK(data_clean, test_size=CFG.test_size,
-                                                random_state=BASE_SEED + idx)
-    # 3 y 4. entrenar modelo de impuacion para datos de train e imputar datos de test
-    train_data_imputed, test_data_imputed = impute_data(train_data, test_data)
-    for element in CFG.elements:
-
-        for model_name, model_config in CFG.MODELS_CONFIG.items():
-            # 5. entrenar modelo de clasificacion con datos de train imputados
-            # 6. obtener predicciones de test a partir del modelo entrenado en el paso anterior
-            # 7. calcular metricas de clasificacion y guardarlas en un archivo de resultados
-            model_result = train_test_NPK(train_data_imputed,
-                                           test_data_imputed,
-                                           element,
-                                           model_name,
-                                           model_config)
-            historico_resultados[element][idx][model_name] = model_result    
-            
-metrica_objetivo = 'f1_test_macro' 
-
-mejores_iteraciones_info = {}
-best_results = {}
-
-for element in CFG.elements:
-    mejor_iteracion = -1
-    mejor_promedio = -1.0
-    
-    # Evaluar cada iteración registrada para este elemento
-    for idx in range(N_ITERATIONS + 1):
-        results_iter = historico_resultados[element][idx]
-        
-        # Extraer la métrica de interés de todos los modelos entrenados en esta iteración
-        metricas_modelos = [
-            resultado[metrica_objetivo] 
-            for modelo, resultado in results_iter.items()
-        ]
-        
-        # Calcular el promedio de los modelos para esta iteración
-        promedio_iteracion = np.mean(metricas_modelos)
-        
-        # Comparar y actualizar si es el mejor hasta ahora
-        if promedio_iteracion > mejor_promedio:
-            mejor_promedio = promedio_iteracion
-            mejor_iteracion = idx
-            
-    # Guardar los metadatos de la iteración ganadora
-    mejores_iteraciones_info[element] = {
-        'iteracion': mejor_iteracion,
-        f'{metrica_objetivo}_promedio': mejor_promedio
-    }
-    
-    # Aislar y guardar LOS RESULTADOS COMPLETOS de la iteración ganadora para este elemento
-    best_results[element] = historico_resultados[element][mejor_iteracion]
-
-save_results_iterations(historico_resultados,
-                        best_results,
-                        mejores_iteraciones_info)
-
-del historico_resultados
-
-
-'''
-
-
-
-
-
-
-
-
+CFG.results_dir = os.path.join(CFG.Root, 'Resultados', 'pipeline_imputation_NPK_treatment_stratif')
+CFG.xai_output_dir = os.path.join(CFG.results_dir, 'xai_outputs')
 
 
 
@@ -161,20 +86,15 @@ def main():
 
         logger.info(f"Ejecutando iteración {idx + 1}/{CFG.n_iterations} (Semilla: {current_seed})")
         
-        train_data, test_data = split_data_NPK(
-            data_clean, 
-            test_size=CFG.test_size, 
-            random_state=current_seed
-        )
+        # ============================
+        # Dividir datos de train y test
+        # ESTRATIFICAR POR tratamiento de NPK y agrupar todos los datos de cada tratamiento en el mismo conjunto (train o test)
+        # Se utiliza StratifiedKFold para asegurar que cada tratamiento esté representado en ambos conjuntos.
+        # ===========================
+        train_data, test_data = treatment_grouped_split(data_clean, test_size=CFG.test_size, random_state=current_seed)
         
         train_data_imputed, test_data_imputed = impute_data(train_data, test_data, seed=current_seed)
-
-        # eliminar columnas de productividad
-        train_data_imputed = train_data_imputed.drop(columns=CFG.productivity_vars, errors='ignore')
-        test_data_imputed = test_data_imputed.drop(columns=CFG.productivity_vars, errors='ignore')
-
-        logger.info(f"Datos imputados para iteración {idx + 1}: Train shape {train_data_imputed.shape}, Test shape {test_data_imputed.shape}")
-        logger.info(f"Variables de entrenamiento: {train_data_imputed.columns.tolist()}")
+        
         for element in CFG.elements_list:
             if idx not in historico_resultados[element]:
                 historico_resultados[element][idx] = {}

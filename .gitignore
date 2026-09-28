@@ -14,3 +14,5 @@
 Resultados*/
 shap_outputs/
 __pycache__/
+figs*/
+BaseDatos*/

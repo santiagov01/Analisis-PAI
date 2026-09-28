@@ -35,8 +35,8 @@ def setup_logger(name="PAI_NPK", log_file=None, level=logging.INFO):
 
 class CFG:
     colab = False  # Cambiar a True si se usa Colab
-    #Root = '/home/student/PAI/Analisis-PAI' if not colab else '/content/drive/MyDrive/PAI'
-    Root = r'D:\Estudio\OneDrive - Universidad de Antioquia\Estudio\PAI\Codigo\Code_Quindio\Analisis-PAI' if not colab else '/content/drive/MyDrive/PAI'
+    Root = '/export2/svargash/PAI-Quindio/Code/Analisis-PAI' if not colab else '/content/drive/MyDrive/PAI'
+    #Root = r'D:\Estudio\OneDrive - Universidad de Antioquia\Estudio\PAI\Codigo\Code_Quindio\Analisis-PAI' if not colab else '/content/drive/MyDrive/PAI'
         
     path_df_imputed = f'{Root}/BaseDatos/df_imputed_with_original.csv'
     path_df_imputed_corrected = f'{Root}/BaseDatos/df_imputed_corrected.csv'
@@ -67,48 +67,15 @@ class CFG:
     cuartiles_train = False
     
     # Parámetros de iteración y reproducibilidad
-    n_iterations = 3 #20 iteraciones cambiando porcion de datos de test segun la semilla.
+    n_iterations = 20 #20 iteraciones cambiando porcion de datos de test segun la semilla.
     base_seed = 42
-    shap_iterations = 3
+    shap_iterations = 10
     target_metric = 'f1_test_macro'
     test_size = 0.3
 
 
 # Configuración de modelos
 MODELS_CONFIG = {
-    'RF': {
-        'estimator': RandomForestClassifier(random_state=42),
-        'param_grid': {
-            'clf__n_estimators': [50],# 100, 200, 300],
-            'clf__max_depth': [10], #20 , 30, 40, 50],
-        },
-        'model_type': 'tree'
-    },
-    'SVM': {
-        'estimator': SVC(probability=True, random_state=42),
-        'param_grid': {
-            'clf__C': [0.1, 1, 10, 100, 300],
-            'clf__kernel': ['rbf'],
-            'clf__gamma': ['auto', 0.01, 0.1, 1, 10]
-        },
-        'model_type': 'kernel'
-    },
-    'KNN': {
-        'estimator': KNeighborsClassifier(),
-        'param_grid': {
-            'clf__n_neighbors': [2, 3, 5, 7, 9]
-        },
-        'model_type': 'kernel'
-    },
-    'MLP': {
-        'estimator': MLPClassifier(max_iter=500, random_state=42, early_stopping=True),
-        'param_grid': {
-            'clf__hidden_layer_sizes': [(50,), (100,), (200,), (100, 50)],
-            'clf__alpha': [0.00001, 0.0001, 0.001]
-        },
-        'model_type': 'kernel'
-    }
-    ,
     'XGB': {
         'estimator': XGBClassifier(
             random_state=42,
@@ -129,6 +96,38 @@ MODELS_CONFIG = {
             'clf__min_child_weight': [1, 3]           # Control fino sobre hojas pequeñas
         },
         'model_type': 'tree'
+    },
+    'RF': {
+        'estimator': RandomForestClassifier(random_state=42),
+        'param_grid': {
+            'clf__n_estimators': [50, 100, 200, 300],
+            'clf__max_depth': [10, 20 , 30, 40, 50],
+        },
+        'model_type': 'tree'
+    },
+    'SVM': {
+        'estimator': SVC(probability=True, random_state=42),
+        'param_grid': {
+            'clf__C': [0.1, 1, 10, 100],
+            'clf__kernel': ['rbf'],
+            'clf__gamma': ['scale', 'auto', 0.01, 0.1, 1]
+        },
+        'model_type': 'kernel'
+    },
+    'KNN': {
+        'estimator': KNeighborsClassifier(),
+        'param_grid': {
+            'clf__n_neighbors': [2, 3, 5, 7, 9]
+        },
+        'model_type': 'kernel'
+    },
+    'MLP': {
+        'estimator': MLPClassifier(max_iter=500, random_state=42, early_stopping=True),
+        'param_grid': {
+            'clf__hidden_layer_sizes': [(50,), (100,), (200,), (100, 50)],
+            'clf__alpha': [0.0001, 0.001, 0.01],
+        },
+        'model_type': 'kernel'
     }
         
 }

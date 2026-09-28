@@ -42,6 +42,41 @@ def split_data_NPK(df, test_size=0.3, random_state=None):
     )
     return train_data.drop(columns=['Etiqueta_NPK']), test_data.drop(columns=['Etiqueta_NPK'])
 
+def treatment_grouped_split(df_temp,
+                             test_size=0.3, random_state=None):
+    """
+    Split by TREATMENT (group) instead of by row, preventing weekly
+    observations of the same treatment from appearing in both
+    train and test. Stratification is applied at the treatment level.
+
+    
+    THIS task (e.g. 'N_level', 'P_level', 'K_level' or 'Quartile_label').
+    It does not have to be the full NPK combo unless that IS the target.
+    """
+    df_temp = df_temp.copy()
+    label_col='Etiqueta_NPK' #the column that defines the class to stratify on for
+    df_temp[label_col] = df_temp['Tratamiento'].str.extract(r'(N\dP\dK\d)')
+    # One row per treatment, with its class label
+    treatments = (
+        df_temp[['Tratamiento', label_col]]
+        .drop_duplicates(subset='Tratamiento')
+        .reset_index(drop=True)
+    )
+
+    # Split TREATMENTS, not rows
+    train_treatments, test_treatments = train_test_split(
+        treatments['Tratamiento'],
+        test_size=test_size,
+        random_state=random_state,
+        stratify=treatments[label_col]
+    )
+
+    # Assign every row of a treatment entirely to one side
+    train_data = df_temp[df_temp['Tratamiento'].isin(train_treatments)]
+    test_data  = df_temp[df_temp['Tratamiento'].isin(test_treatments)]
+
+    return train_data, test_data
+
 def renombrar_columnas(df):
     mapeo = {
     "Altura planta (cm)": "Plant_Height (cm)",
@@ -136,8 +171,8 @@ def impute_data(train_data, test_data, seed=42, columnas_productividad=None):
             
         # Instanciar modelo con min_value=0 para evitar negativos automáticamentee
         imputer = IterativeImputer(
-            estimator=RandomForestRegressor(n_estimators=10, random_state=seed),
-            max_iter=20, random_state=seed, min_value=0
+            estimator=RandomForestRegressor(n_estimators=50, random_state=seed),
+            max_iter=30, random_state=seed, min_value=0
         )
 
         # FIT_TRANSFORM en Train

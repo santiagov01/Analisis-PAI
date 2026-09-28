@@ -65,6 +65,7 @@ def compute_shap_importance(clf, X_scaled_df, feature_names, model_type='tree', 
         except Exception:
             # En caso de error, usar KernelExplainer como fallback
             logger.warning(f"TreeExplainer falló para el modelo {clf}. Usando KernelExplainer como fallback.")
+            logger.exception("Ocurrió un error")
             background = shap.sample(X_scaled_df, min(100, len(X_scaled_df)), random_state=base_seed + iteration)
             explainer = shap.KernelExplainer(clf.predict_proba, background)
             shap_vals = explainer.shap_values(background, nsamples=100)
@@ -209,7 +210,7 @@ def run_shap_pipeline(best_results, elements, models_config, output_dir, n_itera
     return shap_results_by_element
 
 
-def run_permutation_pipeline(best_results, elements, models_config, output_dir, base_seed=42, n_iter=15, logger=None):
+def run_permutation_pipeline(best_results, elements, models_config, output_dir, base_seed=42, n_iter=10, logger=None):
     """Ejecuta el flujo completo de Permutation Importance:
     
     Permutación sobre Pipeline -> filtrado 80% -> análisis de frecuencias y ranking de consenso.

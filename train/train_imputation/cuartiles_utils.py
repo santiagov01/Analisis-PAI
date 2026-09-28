@@ -10,6 +10,17 @@ from sklearn.metrics import accuracy_score, f1_score, classification_report, con
 import eli5
 from eli5.sklearn import PermutationImportance
 
+def read_best_variables(json_file):
+    with open(json_file, 'r') as file:
+        model_variables = json.load(file)
+    best_variables = []
+
+    for model in model_variables:
+        for variable in model_variables[model]:
+            if variable not in best_variables:
+                best_variables.append(variable)
+    return best_variables
+    
 def codificar_cuartiles(df, treat_quantiles_path):
     """Filtra y mapea tratamientos a clases binarias (0: Q1 baja prod, 1: Q4 alta prod)."""
     with open(treat_quantiles_path, 'r') as f:
